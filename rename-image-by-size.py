@@ -53,16 +53,19 @@ def resize(file):
     if imgratio > targetratio:  # too wide, increase height
         newheigth = int(newwidth / targetratio)
         dy = int((newheigth - imgheight)/2)
+        newimg = Image.new('RGB', (newwidth, newheigth), getmeancolor(img))#uniform background color for top/bottom bands
+        newimg.paste(img, (dx, dy))
     elif imgratio < targetratio:  # too high, increase width
         newwidth = int(newheigth * targetratio)
         dx = int((newwidth - imgwidth)/2)
-    # imgstretched = img.resize((newwidth, newheigth))#stretch
-    imgresized = Image.new('RGB', (newwidth, newheigth), getmeancolor(img))
-    imgresized.paste(img, (dx, dy))
+        newimg = img.resize((newwidth, newheigth))#stretch - stretched bg works fine for added width, not height
+        newimg.paste(img, (dx, dy))
+    else:
+        newimg = img.copy()
     targetpath = os.path.dirname(file)+"/resize_"+ratiotostring(targetratio)+"/"
     if not(os.path.exists(targetpath)):
          os.mkdir(targetpath)
-    imgresized.save(targetpath+getnamenosize(os.path.basename(file)))
+    newimg.save(targetpath+getnamenosize(os.path.basename(file)))
     img.close()
 
 
