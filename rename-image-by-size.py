@@ -44,8 +44,8 @@ def getmeancolor(img):
     return (int(sumr/nb), int(sumg/nb), int(sumb/nb))
 
 
-def resize(file):
-    targetratio = 16/9  # w/h
+def resize(file, targetratio= 16/9):
+    # targetratio= 16/9   # w/h
     img = Image.open(file)
     newwidth, newheigth = imgwidth, imgheight = img.size
     dx = dy = 0
@@ -65,11 +65,12 @@ def resize(file):
     targetpath = os.path.dirname(file)+"/resize_"+ratiotostring(targetratio)+"/"
     if not(os.path.exists(targetpath)):
          os.mkdir(targetpath)
-    newimg.save(targetpath+getnamenosize(os.path.basename(file)))
+    #newimg.save(targetpath+getnamenosize(os.path.basename(file)))
+    newimg.save(targetpath+"resized_"+os.path.basename(file))
     img.close()
 
 
-def main(action, inpath):
+def main(action, inpath, targetratio):
     for ext in ["jpg", "jpeg", "png"]:
         for file in glob.glob(inpath + "/*."+ext):
             fbasename = os.path.basename(file)
@@ -96,15 +97,23 @@ def main(action, inpath):
                                      (fbasename, newname))
                     os.rename(file, fpath+"/"+newname)
             elif action == "resize":
-                resize(file)
+                resize(file, targetratio)
 
 def usage():
-    sys.stdout.write("Usage: %s rename|remove|resize <images path>\n" % sys.argv[0])
+    sys.stdout.write("Usage: %s rename|remove|resize <images path> <resize target ratio>\n" % sys.argv[0])
 
 
 if __name__ == "__main__":
     args = sys.argv[1:]
     if len(args) > 1:
-        main(args[0], args[1])
+        action = args[0]
+        inpath = args[1]
+        assert action in ["rename","remove","resize"]
+        assert os.path.exists(inpath) is True
+        targetratio = None
+        if len(args) > 1:
+            assert args[2].replace('.','',1).isdigit()
+            targetratio = float(args[2])
+        main(action, inpath, targetratio)
     else:
         usage()
