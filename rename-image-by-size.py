@@ -77,30 +77,20 @@ def main(action, inpath, targetratio):
             fpath = os.path.dirname(file)
             # fpathname, file_extension = os.path.splitext(file)
             width, height, ratio = getimagesize(file)
-            if  action == "remove" and str(width) in fbasename:
-               sys.stdout.write(
-                    "File name (%s) already contains width (%s)\n" % (fbasename, width))
-               newname = getnamenosize(fbasename)
-               sys.stdout.write("renaming %s -> %s\n" %
-                                     (fbasename, newname))
-               os.rename(file, fpath+"/"+newname)
-            elif action == "remove" and str(height) in fbasename:
-               sys.stdout.write(
-                    "File name (%s) already contains height (%s)\n" % (fbasename, height))
-               newname = getnamenosize(fbasename)
-               sys.stdout.write("renaming %s -> %s\n" %
-                                     (fbasename, newname))
-               os.rename(file, fpath+"/"+newname)
+            if  action == "remove" and (str(width) in fbasename or str(height) in fbasename):
+                newname = getnamenosize(fbasename)
+                print(f"renaming {fbasename} -> {newname}" )
+                os.rename(file, fpath+"/"+newname)
             elif action == "rename":
-                    newname = getnamefromsize(getnamenosize(fbasename), width, height, ratio)
-                    sys.stdout.write("renaming %s -> %s\n" %
-                                     (fbasename, newname))
-                    os.rename(file, fpath+"/"+newname)
+                newname = getnamefromsize(getnamenosize(fbasename), width, height, ratio)
+                print(f"renaming {fbasename} -> {newname}" )
+                os.rename(file, fpath+"/"+newname)
             elif action == "resize":
+                print(f"resizing {fbasename} to {targetratio}")
                 resize(file, targetratio)
 
 def usage():
-    sys.stdout.write("Usage: %s rename|remove|resize <images path> <resize target ratio>\n" % sys.argv[0])
+    print(f"Usage: {sys.argv[0]} rename|remove|resize <images path> <resize target ratio>")
 
 
 if __name__ == "__main__":
@@ -111,8 +101,8 @@ if __name__ == "__main__":
         assert action in ["rename","remove","resize"]
         assert os.path.exists(inpath) is True
         targetratio = None
-        if len(args) > 1:
-            assert args[2].replace('.','',1).isdigit()
+        if len(args) > 2:
+            assert args[2].replace('.','',1).isdigit() #isdigit doesnt handle decimals, just remove the . for the test
             targetratio = float(args[2])
         main(action, inpath, targetratio)
     else:
