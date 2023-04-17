@@ -7,7 +7,7 @@ import glob
 from PIL import Image
 from fractions import Fraction
 import random
-
+import re
 
 def getimagesize(file):
     im = Image.open(file)
@@ -26,7 +26,6 @@ def getnamefromsize(fbasename, width, height, ratio):
     return f"{rstr}_{fs}_{fbasename}"
 
 def getnamenosize(fbasename,addrnd=False):
-    import re
     clean = re.sub(r"(\d(x| |_|-)?)+", "", fbasename)
     if addrnd:
         clean = str(random.randint(0, 999))+clean
