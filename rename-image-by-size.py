@@ -6,6 +6,7 @@ import sys
 import glob
 from PIL import Image
 from fractions import Fraction
+import random
 
 
 def getimagesize(file):
@@ -15,20 +16,21 @@ def getimagesize(file):
     im.close()
     return width, height, ratio
 
-
 def ratiotostring(ratio):
      frac = Fraction(str(ratio)).limit_denominator(100)
      return str(frac).replace("/", "x")
 
 def getnamefromsize(fbasename, width, height, ratio):
     fs = ratiotostring(ratio)
-    return fs+"_"+str(width)+"x"+str(height)+"_"+fbasename
+    rstr = str(round(ratio, 2)).replace(".", "-")
+    return f"{rstr}_{fs}_{fbasename}"
 
-
-def getnamenosize(fbasename):
+def getnamenosize(fbasename,addrnd=False):
     import re
-    return re.sub(r"\d+ ?(x|_|-) ?\d+(_|-)?", "", fbasename)
-
+    clean = re.sub(r"(\d(x| |_|-)?)+", "", fbasename)
+    if addrnd:
+        clean = str(random.randint(0, 999))+clean
+    return clean
 
 def getmeancolor(img):
     rgb_im = img.convert('RGB')
@@ -69,6 +71,8 @@ def resize(file, targetratio= 16/9):
     newimg.save(targetpath+"resized_"+os.path.basename(file))
     img.close()
 
+def checkname(fpath,newname):
+    return os.path.isfile(fpath+"/"+newname)
 
 def main(action, inpath, targetratio):
     for ext in ["jpg", "jpeg", "png"]:
@@ -79,10 +83,14 @@ def main(action, inpath, targetratio):
             width, height, ratio = getimagesize(file)
             if  action == "remove" and (str(width) in fbasename or str(height) in fbasename):
                 newname = getnamenosize(fbasename)
+                while checkname(fpath,newname):
+                    newname = getnamenosize(fbasename,True)
                 print(f"renaming {fbasename} -> {newname}" )
                 os.rename(file, fpath+"/"+newname)
             elif action == "rename":
                 newname = getnamefromsize(getnamenosize(fbasename), width, height, ratio)
+                while checkname(fpath,newname):
+                    newname = getnamefromsize(getnamenosize(fbasename,True), width, height, ratio)
                 print(f"renaming {fbasename} -> {newname}" )
                 os.rename(file, fpath+"/"+newname)
             elif action == "resize":
