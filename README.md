@@ -1,7 +1,7 @@
 # image-resize
 
 ```
-pip install pillow
+pip install -r requirements.txt
 
 rename-image-by-size.py rename|remove|resize <images path>
 ```

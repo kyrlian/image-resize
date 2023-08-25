@@ -1,0 +1,13 @@
+three screens :
+3840x2160
+1440x2560
+3840x2160
+
+Total with the TV:
+total w = 9120
+total h = 2560
+ratio = 3,5625 ~ 32/9
+
+without the TV:
+5280x2560
+ratio = 2,065 ~ 159/77 ~ 19/9
