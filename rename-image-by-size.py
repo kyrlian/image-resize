@@ -9,29 +9,29 @@ from fractions import Fraction
 import random
 import re
 
-def getimagesize(file):
+def get_image_size(file):
     im = Image.open(file)
     width, height = im.size
     ratio = width/height
     im.close()
     return width, height, ratio
 
-def ratiotostring(ratio):
+def ratio_to_string(ratio):
      frac = Fraction(str(ratio)).limit_denominator(100)
      return str(frac).replace("/", "x")
 
-def getnamefromsize(fbasename, width, height, ratio):
-    fs = ratiotostring(ratio)
-    rstr = str(round(ratio, 2)).replace(".", "-")
-    return f"{rstr}_{fs}_{fbasename}"
+def choose_name_from_size(fbasename, width, height, ratio):
+    rounded_ratio = str(round(ratio, 2)).replace(".", "-")
+    ratio_string = ratio_to_string(ratio)
+    return f"{rounded_ratio}_{ratio_string}_{fbasename}"
 
-def getnamenosize(fbasename,addrnd=False):
+def remove_size_from_name(fbasename,addrnd=False):
     clean = re.sub(r"(\d(x| |_|-)?)+", "", fbasename)
     if addrnd:
         clean = str(random.randint(0, 999))+clean
     return clean
 
-def getmeancolor(img):
+def get_mean_color(img):
     rgb_im = img.convert('RGB')
     imgwidth, imgheight = img.size
     sumr = sumg = sumb = nb = 0
@@ -45,32 +45,32 @@ def getmeancolor(img):
     return (int(sumr/nb), int(sumg/nb), int(sumb/nb))
 
 
-def resize(file, targetratio= 16/9):
+def resize(file, target_ratio= 16/9):
     # targetratio= 16/9   # w/h
     img = Image.open(file)
-    newwidth, newheigth = imgwidth, imgheight = img.size
+    new_width, new_heigth = imgwidth, imgheight = img.size
     dx = dy = 0
-    imgratio = imgwidth / imgheight
-    if imgratio > targetratio:  # too wide, increase height
-        newheigth = int(newwidth / targetratio)
-        dy = int((newheigth - imgheight)/2)
-        newimg = Image.new('RGB', (newwidth, newheigth), getmeancolor(img))#uniform background color for top/bottom bands
+    img_ratio = imgwidth / imgheight
+    if img_ratio > target_ratio:  # too wide, increase height
+        new_heigth = int(new_width / target_ratio)
+        dy = int((new_heigth - imgheight)/2)
+        newimg = Image.new('RGB', (new_width, new_heigth), get_mean_color(img))#uniform background color for top/bottom bands
         newimg.paste(img, (dx, dy))
-    elif imgratio < targetratio:  # too high, increase width
-        newwidth = int(newheigth * targetratio)
-        dx = int((newwidth - imgwidth)/2)
-        newimg = img.resize((newwidth, newheigth))#stretch - stretched bg works fine for added width, not height
+    elif img_ratio < target_ratio:  # too high, increase width
+        new_width = int(new_heigth * target_ratio)
+        dx = int((new_width - imgwidth)/2)
+        newimg = img.resize((new_width, new_heigth))#stretch - stretched bg works fine for added width, not height
         newimg.paste(img, (dx, dy))
     else:
         newimg = img.copy()
-    targetpath = os.path.dirname(file)+"/resize_"+ratiotostring(targetratio)+"/"
+    targetpath = os.path.dirname(file)+"/resize_"+ratio_to_string(target_ratio)+"/"
     if not(os.path.exists(targetpath)):
          os.mkdir(targetpath)
-    #newimg.save(targetpath+getnamenosize(os.path.basename(file)))
+    #newimg.save(targetpath+remove_size_from_name(os.path.basename(file)))
     newimg.save(targetpath+"resized_"+os.path.basename(file))
     img.close()
 
-def checkname(fpath,newname):
+def check_name(fpath,newname):
     return os.path.isfile(fpath+"/"+newname)
 
 def main(action, inpath, targetratio):
@@ -79,17 +79,17 @@ def main(action, inpath, targetratio):
             fbasename = os.path.basename(file)
             fpath = os.path.dirname(file)
             # fpathname, file_extension = os.path.splitext(file)
-            width, height, ratio = getimagesize(file)
+            width, height, ratio = get_image_size(file)
             if  action == "remove" and (str(width) in fbasename or str(height) in fbasename):
-                newname = getnamenosize(fbasename)
-                while checkname(fpath,newname):
-                    newname = getnamenosize(fbasename,True)
+                newname = remove_size_from_name(fbasename)
+                while check_name(fpath,newname):
+                    newname = remove_size_from_name(fbasename,True)
                 print(f"renaming {fbasename} -> {newname}" )
                 os.rename(file, fpath+"/"+newname)
             elif action == "rename":
-                newname = getnamefromsize(getnamenosize(fbasename), width, height, ratio)
-                while checkname(fpath,newname):
-                    newname = getnamefromsize(getnamenosize(fbasename,True), width, height, ratio)
+                newname = choose_name_from_size(remove_size_from_name(fbasename), width, height, ratio)
+                while check_name(fpath,newname):
+                    newname = choose_name_from_size(remove_size_from_name(fbasename,True), width, height, ratio)
                 print(f"renaming {fbasename} -> {newname}" )
                 os.rename(file, fpath+"/"+newname)
             elif action == "resize":
